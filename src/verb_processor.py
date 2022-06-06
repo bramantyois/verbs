@@ -6,13 +6,19 @@ import pandas as pd
 
 
 class VerbProcessor:
-
-    def __init__(self, text_file, headers, prefix='\t', postfix='\n') -> None:
+    def __init__(self, text_file, headers, prefix='\t', postfix='\n'):
+        """
+        class for text processing
+        :param text_file: raining text file. should include target and training data
+        :param headers: ict of target and training data
+        :param prefix: character denoting the start of a word
+        :param postfix: character denoting the end of a word
+        """
         self.prefix = prefix
         self.postfix = postfix
 
-        self.dataset = pd.read_csv(text_file)
-        self.dataset = self.dataset.apply(lambda x: prefix + x + postfix)
+        self.dataset_raw = pd.read_csv(text_file)
+        self.dataset = self.dataset_raw.apply(lambda x: prefix + x + postfix)
 
         self.num_data = len(self.dataset)
 
@@ -52,6 +58,16 @@ class VerbProcessor:
         text_seq = pad_sequences(text_seq, maxlen=self.max_pad, padding='post')
         text_seq = to_categorical(text_seq, num_classes=self.num_classes)
         return text_seq
+
+    def get_one_hot(self, text_sample: list()):
+        samples_seq = pd.Series(text_sample).apply(lambda x: self.prefix + x + self.postfix)
+
+        samples_seq = self.tokenizer.texts_to_sequences(samples_seq.to_list())
+
+        samples_seq = pad_sequences(samples_seq, maxlen=self.max_pad, padding='post')
+        samples_seq = to_categorical(samples_seq, num_classes=self.num_classes)
+
+        return samples_seq
 
 
 def get_ahead_target(seq: list(), stop_val=0):
